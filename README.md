@@ -17,6 +17,10 @@ Action TF2_OnRegenThinkAmmo(int client, float& regenAmmoPercent, int& regenMetal
 void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal);
 ```
 
+## Dependencies
+
+Requires [TF2 Attributes](https://github.com/FlaminSarge/tf2attributes)
+
 ## Credits
 
 I want to thank nosoop for always having some insights or helpful reference code withing TF2 in their plugins.
