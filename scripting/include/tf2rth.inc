@@ -16,7 +16,7 @@
  * @param client - the player that's currently thinking
  * @return Plugin_Handled or higher to skip this think
  */
-public Action TF2_OnRegenThinkPre(int client);
+forward Action TF2_OnClientRegenThinkPre(int client);
 
 /**
  * Called once health regen computation based on class and attributes has finished,
@@ -29,7 +29,7 @@ public Action TF2_OnRegenThinkPre(int client);
  * @param regenAttribs - the item/attib based health bonus for this tick
  * @return Plugin_Handled or higher will prevent regeneration and not change the accumulator
  */
-public Action TF2_OnRegenThinkHealth(int client, float& regenClass, float& regenAttribs);
+forward Action TF2_OnClientRegenThinkHealth(int client, float& regenClass, float& regenAttribs);
 
 /**
  * Called once ammo and metal regen boni are computed but before they are applied.
@@ -40,7 +40,7 @@ public Action TF2_OnRegenThinkHealth(int client, float& regenClass, float& regen
  * @param regenMetal - the amount of metal te regen
  * @return Plugin_Handled or higher to prevent regeneration and not change the accumulator
  */
-public Action TF2_OnRegenThinkAmmo(int client, float& regenAmmo, int& regenMetal);
+forward Action TF2_OnClientRegenThinkAmmo(int client, float& regenAmmo, int& regenMetal);
 
 /**
  * Called before the RegenThink hook returns with a summary of effectively changed values.
@@ -50,4 +50,4 @@ public Action TF2_OnRegenThinkAmmo(int client, float& regenAmmo, int& regenMetal
  * @param regenAmmo - amount of ammo regenerated (value might ignore max ammo)
  * @param regenMetal - amount of metal regenerated (value might ignore max metal)
  */
-public void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal);
+forward void TF2_OnClientRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal);

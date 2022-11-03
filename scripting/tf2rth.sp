@@ -7,8 +7,11 @@
 #include <tf2_stocks>
 #include <tf2attributes>
 
+#pragma newdecls required
+#pragma semicolon 1
+
 #define TF_REGEN_THINK_INTERVAL 1.0
-#define TF_REGEN_HEALTH 3
+#define TF_REGEN_HEALTH 3.0
 #define TF_REGEN_AMMO_INTERVAL 5.0
 
 #define PLUGIN_VERSION "22w44a"
@@ -18,10 +21,10 @@ public Plugin myinfo = {
 	author = "reBane",
 	description = "Library to control health ammo and metal regen",
 	version = PLUGIN_VERSION,
-	url = "N/A"
+	url = "https://github.com/DosMike/TF2-RegenThinkHook"
 }
 
-Handle sc_CTFPlayer_GiveHealth;
+Handle sc_CTFPlayer_TakeHealth;
 Handle sc_CTFPlayer_RegenAmmo;
 Handle sc_CBaseEntity_ThinkSet;
 Address addr_CTFPlayer_RegenThink;
@@ -36,13 +39,13 @@ GlobalForward fwd_RegenThinkHealth;
 GlobalForward fwd_RegenThinkAmmo;
 GlobalForward fwd_RegenThinkPost;
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+public void OnPluginStart() {
 	GameData data = new GameData("tf2rth.games");
 	
 	// allows us to use the engines scheduler to re-schedule the think function
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetAddress(data.GetMemSig("CBaseEntity::ThinkSet()"));
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer); //function
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //function
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain); //next invocation
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Plain); //context name
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Pointer); //returns the function pointer for chain-calling i guess
@@ -51,11 +54,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	
 	// at some point we need to apply the health
 	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetVirtual(data.GetOffset("CTFPlayer::GiveHealth()"));
+	PrepSDKCall_SetVirtual(data.GetOffset("CTFPlayer::TakeHealth()"));
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //hp
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //damage flags?
-	if ((sc_CTFPlayer_GiveHealth = EndPrepSDKCall()) == INVALID_HANDLE)
-		SetFailState("Failed to prepare call to CTFPlayer::GiveHealth()");
+	if ((sc_CTFPlayer_TakeHealth = EndPrepSDKCall()) == INVALID_HANDLE)
+		SetFailState("Failed to prepare call to CTFPlayer::TakeHealth()");
 	
 	// and regen ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -67,6 +70,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	
 	//get the address for think scheduling
 	addr_CTFPlayer_RegenThink = data.GetMemSig("CTFPlayer::RegenThink()");
+	if (addr_CTFPlayer_RegenThink == Address_Null)
+		SetFailState("Failed to look up CTFPlayer::RegenThink()");
 	
 	//hook the think method
 	dt_CTFPlayer_RegenThink = DynamicDetour.FromConf(data, "CTFPlayer::RegenThink()");
@@ -79,10 +84,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	delete data;
 	
 	//setup forwards
-	fwd_RegenThinkPre = CreateGlobalForward("TF2_OnRegenThinkPre", ET_Hook, Param_Cell);
-	fwd_RegenThinkHealth = CreateGlobalForward("TF2_OnRegenThinkHealth", ET_Event, Param_Cell, Param_FloatByRef, Param_FloatByRef);
-	fwd_RegenThinkAmmo = CreateGlobalForward("TF2_OnRegenThinkAmmo", ET_Event, Param_Cell, Param_FloatByRef, Param_CellByRef);
-	fwd_RegenThinkPost = CreateGlobalForward("TF2_OnRegenThinkPost", ET_Ignore, Param_Cell, Param_Cell, Param_Float, Param_Cell);
+	fwd_RegenThinkPre = CreateGlobalForward("TF2_OnClientRegenThinkPre", ET_Hook, Param_Cell);
+	fwd_RegenThinkHealth = CreateGlobalForward("TF2_OnClientRegenThinkHealth", ET_Event, Param_Cell, Param_FloatByRef, Param_FloatByRef);
+	fwd_RegenThinkAmmo = CreateGlobalForward("TF2_OnClientRegenThinkAmmo", ET_Event, Param_Cell, Param_FloatByRef, Param_CellByRef);
+	fwd_RegenThinkPost = CreateGlobalForward("TF2_OnClientRegenThinkPost", ET_Ignore, Param_Cell, Param_Cell, Param_Float, Param_Cell);
 }
 
 public void OnMapStart() {
@@ -142,10 +147,11 @@ public MRESReturn RegenThinkHook(int pThis) {
 }
 
 stock void ThinkSet(int entity, Address func, float nextCall = 0.0, const char[] context = "") {
+	PrintToServer("Rescheduling %s at %08X at %f", context, func, nextCall);
 	SDKCall(sc_CBaseEntity_ThinkSet, entity, func, nextCall, context);
 }
-stock int GiveHealth(int client, int health, int damage_flags) {
-	return SDKCall(sc_CTFPlayer_GiveHealth, client, health, damage_flags);
+stock int TakeHealth(int client, int health, int damage_flags) {
+	return SDKCall(sc_CTFPlayer_TakeHealth, client, health, damage_flags);
 }
 stock void RegenAmmo(int client, int ammotype, float amount) {
 	SDKCall(sc_CTFPlayer_RegenAmmo, client, ammotype, amount);
@@ -167,7 +173,7 @@ static int GetMedicPatient(int medic) {
 	return GetEntPropEnt(weapon, Prop_Send, "m_hHealingTarget");
 }
 static int GetClientMaxHealth(int client) {
-	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client)
+	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }
 static void RegenThinkOverride(int client) {
 	if (!IsPlayerAlive(client)) return;
@@ -182,12 +188,12 @@ static void RegenThinkOverride(int client) {
 	
 	// medic health regen
 	if (TF2_GetPlayerClass(client) == TFClass_Medic) {
-		healthClass = float(TF_REGEN_HEALTH);
+		healthClass = TF_REGEN_HEALTH;
 		
 		int patient = GetMedicPatient(client);
 		if (1<=patient<=MaxClients && GetClientHealth(client) < GetClientMaxHealth(client)) {
 			//actively healing a patient, double healing
-			healthClass += float(TF_REGEN_HEALTH);
+			healthClass += TF_REGEN_HEALTH;
 		}
 		
 		//heal more if not taken damage for some time
@@ -196,7 +202,7 @@ static void RegenThinkOverride(int client) {
 		
 		//healing_mastery attribute check
 		if (GameRules_GetProp("m_bPlayingMannVsMachine")) {
-			int healing_mastery = TF2Attrib_HookValueInt(0, "healing_mastery", client)
+			int healing_mastery = TF2Attrib_HookValueInt(0, "healing_mastery", client);
 			if (healing_mastery) healthClass *= RemapRange(float(healing_mastery), 1.0, 4.0, 1.25, 2.0);
 		}
 		
@@ -222,7 +228,7 @@ static void RegenThinkOverride(int client) {
 	if (healthRegenAccu >= 1.0) {
 		healedAmount = RoundToFloor(healthRegenAccu);
 		if (GetClientHealth(client) < GetClientMaxHealth(client)) {
-			int actualAmount = GiveHealth(client, healedAmount, DMG_SLASH);
+			int actualAmount = TakeHealth(client, healedAmount, DMG_SLASH);
 			if (actualAmount) {
 				Event event = CreateEvent("player_healed");
 				if (event != INVALID_HANDLE) {

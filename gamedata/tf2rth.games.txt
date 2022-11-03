@@ -14,7 +14,7 @@
 				"linux" "8184"
 				"windows" "8180"
 			}
-			"CTFPlayer::GiveHealth()"
+			"CTFPlayer::TakeHealth()"
 			{
 				"linux" "65"
 				"windows" "64"
