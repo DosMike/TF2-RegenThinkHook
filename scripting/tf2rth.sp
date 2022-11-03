@@ -33,6 +33,7 @@ DynamicDetour dt_CTFPlayer_RegenThink;
 int off_CTFPlayer_m_flLastHealthRegenAt;
 int off_CTFPlayer_m_flAccumulatedHealthRegen;
 int off_CTFPlayer_m_flNextAmmoRegenAt;
+int off_CTFPlayer_m_flLastDamageTime;
 
 GlobalForward fwd_RegenThinkPre;
 GlobalForward fwd_RegenThinkHealth;
@@ -55,7 +56,7 @@ public void OnPluginStart() {
 	// at some point we need to apply the health
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetVirtual(data.GetOffset("CTFPlayer::TakeHealth()"));
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //hp
+	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain); //hp
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //damage flags?
 	if ((sc_CTFPlayer_TakeHealth = EndPrepSDKCall()) == INVALID_HANDLE)
 		SetFailState("Failed to prepare call to CTFPlayer::TakeHealth()");
@@ -80,6 +81,7 @@ public void OnPluginStart() {
 	off_CTFPlayer_m_flLastHealthRegenAt = data.GetOffset("CTFPlayer::m_flLastHealthRegenAt");
 	off_CTFPlayer_m_flAccumulatedHealthRegen = data.GetOffset("CTFPlayer::m_flAccumulatedHealthRegen");
 	off_CTFPlayer_m_flNextAmmoRegenAt = data.GetOffset("CTFPlayer::m_flNextAmmoRegenAt");
+	off_CTFPlayer_m_flLastDamageTime = data.GetOffset("CTFPlayer::m_flLastDamageTime");
 	
 	delete data;
 	
@@ -149,7 +151,7 @@ public MRESReturn RegenThinkHook(int pThis) {
 stock void ThinkSet(int entity, Address func, float nextCall = 0.0, const char[] context = "") {
 	SDKCall(sc_CBaseEntity_ThinkSet, entity, func, nextCall, context);
 }
-stock int PlayerTakeHealth(int client, int health, int damage_flags) {
+stock int PlayerTakeHealth(int client, float health, int damage_flags) {
 	return SDKCall(sc_CTFPlayer_TakeHealth, client, health, damage_flags);
 }
 stock void PlayerRegenAmmo(int client, int ammotype, float amount) {
@@ -196,7 +198,7 @@ static void RegenThinkOverride(int client) {
 		}
 		
 		//heal more if not taken damage for some time
-		float timeSinceDmg = GetGameTime() - GetEntPropFloat(client, Prop_Data, "m_flLastDamageTime");
+		float timeSinceDmg = GetGameTime() - GetEntDataFloat(client, off_CTFPlayer_m_flLastDamageTime);
 		healthClass *= RemapRange(timeSinceDmg, 5.0, 10.0, 1.0, 2.0);
 		
 		//healing_mastery attribute check
@@ -211,7 +213,7 @@ static void RegenThinkOverride(int client) {
 	// process other attribs
 	healthAttribs = TF2Attrib_HookValueFloat(0.0, "add_health_regen", client);
 	if (healthAttribs && !GameRules_GetProp("m_bPlayingMannVsMachine")) {
-		float timeSinceDmg = GetGameTime() - GetEntPropFloat(client, Prop_Data, "m_flLastDamageTime");
+		float timeSinceDmg = GetGameTime() - GetEntDataFloat(client, off_CTFPlayer_m_flLastDamageTime);
 		if (timeSinceDmg < 5.0) healthAttribs *= 0.5;
 		else if (timeSinceDmg < 10.0) healthAttribs *= (timeSinceDmg / 10.0);
 	}
@@ -227,7 +229,7 @@ static void RegenThinkOverride(int client) {
 	if (healthRegenAccu >= 1.0) {
 		healedAmount = RoundToFloor(healthRegenAccu);
 		if (GetClientHealth(client) < GetClientMaxHealth(client)) {
-			int actualAmount = PlayerTakeHealth(client, healedAmount, DMG_SLASH);
+			int actualAmount = PlayerTakeHealth(client, float(healedAmount), DMG_SLASH);
 			if (actualAmount) {
 				Event event = CreateEvent("player_healed");
 				if (event != INVALID_HANDLE) {
@@ -239,7 +241,7 @@ static void RegenThinkOverride(int client) {
 				}
 			}
 		}
-	} else if (healthRegenAccu <= -1.0) {
+	} else if (healthRegenAccu < -1.0) { //small bug in valve code?
 		healedAmount = RoundToCeil(healthRegenAccu);
 		SDKHooks_TakeDamage(client, client, client, healedAmount*-1.0);
 	}
