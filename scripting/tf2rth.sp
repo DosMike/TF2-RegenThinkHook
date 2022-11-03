@@ -90,7 +90,18 @@ public void OnPluginStart() {
 	fwd_RegenThinkHealth = CreateGlobalForward("TF2_OnClientRegenThinkHealth", ET_Event, Param_Cell, Param_FloatByRef, Param_FloatByRef);
 	fwd_RegenThinkAmmo = CreateGlobalForward("TF2_OnClientRegenThinkAmmo", ET_Event, Param_Cell, Param_FloatByRef, Param_CellByRef);
 	fwd_RegenThinkPost = CreateGlobalForward("TF2_OnClientRegenThinkPost", ET_Ignore, Param_Cell, Param_Cell, Param_Float, Param_Cell);
+	
+	ConVar version = CreateConVar("sm_tf2regenthinkhook_version", PLUGIN_VERSION, "Version", FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	version.SetString(PLUGIN_VERSION);
+	version.AddChangeHook(OnVersionChanged);
+	delete version;
 }
+public void OnVersionChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
+	if (!StrEqual(newValue,PLUGIN_VERSION)) {
+		convar.SetString(PLUGIN_VERSION);
+	}
+}
+
 
 public void OnMapStart() {
 	if (!dt_CTFPlayer_RegenThink.Enable(Hook_Pre, RegenThinkHook))
