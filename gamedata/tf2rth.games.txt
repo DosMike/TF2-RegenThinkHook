@@ -24,6 +24,11 @@
 				"linux" "8188"
 				"windows" "8184"
 			}
+			"CTFPlayer::m_flLastDamageTime"
+			{
+				"linux" "8528"
+				"windows" "8524"
+			}
 		}
 		"Functions"
 		{
