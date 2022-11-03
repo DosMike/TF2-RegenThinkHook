@@ -22,7 +22,3 @@ void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int rege
 I want to thank nosoop for always having some insights or helpful reference code withing TF2 in their plugins.
 Also thanks to who ever asked for this in the SM Discord, I actually needed this for a personal project, but was too lazy to properly do this until now.
 Please open an issue if I forgot anyone :)
-
-## License
-
-This project is MIT licensed. Check the License file for more information
