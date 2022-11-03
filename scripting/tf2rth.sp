@@ -14,7 +14,7 @@
 #define TF_REGEN_HEALTH 3.0
 #define TF_REGEN_AMMO_INTERVAL 5.0
 
-#define PLUGIN_VERSION "22w44a"
+#define PLUGIN_VERSION "22w44b"
 
 public Plugin myinfo = {
 	name = "[TF2] Regen Think Hooks",
@@ -39,6 +39,11 @@ GlobalForward fwd_RegenThinkPre;
 GlobalForward fwd_RegenThinkHealth;
 GlobalForward fwd_RegenThinkAmmo;
 GlobalForward fwd_RegenThinkPost;
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+	RegPluginLibrary("tf2regenthinkhook");
+}
+
 
 public void OnPluginStart() {
 	GameData data = new GameData("tf2rth.games");

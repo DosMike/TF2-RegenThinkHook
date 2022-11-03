@@ -51,3 +51,22 @@ forward Action TF2_OnClientRegenThinkAmmo(int client, float& regenAmmo, int& reg
  * @param regenMetal - amount of metal regenerated (value might ignore max metal)
  */
 forward void TF2_OnClientRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal);
+
+
+
+
+public SharedPlugin __pl_tf2regenthinkhook = {
+	name = "tf2regenthinkhook",
+	file = "tf2rth.smx",
+#if defined REQUIRE_PLUGIN
+	required = 1,
+#else
+	required = 0,
+#endif
+};
+
+
+#if !defined REQUIRE_PLUGIN
+public void __pl_tf2regenthinkhook_SetNTVOptional() {
+}
+#endif
