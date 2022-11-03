@@ -147,13 +147,12 @@ public MRESReturn RegenThinkHook(int pThis) {
 }
 
 stock void ThinkSet(int entity, Address func, float nextCall = 0.0, const char[] context = "") {
-	PrintToServer("Rescheduling %s at %08X at %f", context, func, nextCall);
 	SDKCall(sc_CBaseEntity_ThinkSet, entity, func, nextCall, context);
 }
-stock int TakeHealth(int client, int health, int damage_flags) {
+stock int PlayerTakeHealth(int client, int health, int damage_flags) {
 	return SDKCall(sc_CTFPlayer_TakeHealth, client, health, damage_flags);
 }
-stock void RegenAmmo(int client, int ammotype, float amount) {
+stock void PlayerRegenAmmo(int client, int ammotype, float amount) {
 	SDKCall(sc_CTFPlayer_RegenAmmo, client, ammotype, amount);
 }
 
@@ -228,7 +227,7 @@ static void RegenThinkOverride(int client) {
 	if (healthRegenAccu >= 1.0) {
 		healedAmount = RoundToFloor(healthRegenAccu);
 		if (GetClientHealth(client) < GetClientMaxHealth(client)) {
-			int actualAmount = TakeHealth(client, healedAmount, DMG_SLASH);
+			int actualAmount = PlayerTakeHealth(client, healedAmount, DMG_SLASH);
 			if (actualAmount) {
 				Event event = CreateEvent("player_healed");
 				if (event != INVALID_HANDLE) {
@@ -276,8 +275,8 @@ static void RegenThinkOverride(int client) {
 		}
 		
 		if (ammoAmount) {
-			RegenAmmo(client, 1, ammoAmount);
-			RegenAmmo(client, 2, ammoAmount);
+			PlayerRegenAmmo(client, 1, ammoAmount);
+			PlayerRegenAmmo(client, 2, ammoAmount);
 		}
 		if (metalAmount) {
 			GivePlayerAmmo(client, metalAmount, 3, true);
