@@ -11,10 +11,10 @@ Since this plugin superceds the original function, I'm currently not sure how we
 The forwards are documented in the include.
 
 ```c
-Action TF2_OnRegenThinkPre(int client)
-Action TF2_OnRegenThinkHealth(int client, float& regenHealthClass, float& regenHealthAttribs)
-Action TF2_OnRegenThinkAmmo(int client, float& regenAmmoPercent, int& regenMetal)
-void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal)
+Action TF2_OnRegenThinkPre(int client);
+Action TF2_OnRegenThinkHealth(int client, float& regenHealthClass, float& regenHealthAttribs);
+Action TF2_OnRegenThinkAmmo(int client, float& regenAmmoPercent, int& regenMetal);
+void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int regenMetal);
 ```
 
 ## Credits
