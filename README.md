@@ -21,6 +21,11 @@ void TF2_OnRegenThinkPost(int client, int regenHealth, float regenAmmo, int rege
 
 Requires [TF2 Attributes](https://github.com/FlaminSarge/tf2attributes)
 
+## Module Plugins
+
+* [TF2 ClassRegenConfig](ClassRegenConfig.md)   
+  Configure health, ammo and metal regeneration for every player class using a config or third party plugins
+
 ## Credits
 
 I want to thank nosoop for always having some insights or helpful reference code withing TF2 in their plugins.
