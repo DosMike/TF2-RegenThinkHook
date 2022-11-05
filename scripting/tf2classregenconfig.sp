@@ -6,7 +6,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "22w44b"
+#define PLUGIN_VERSION "22w44c"
 
 public Plugin myinfo = {
 	name = "[TF2] Class Regeneration Configuration",

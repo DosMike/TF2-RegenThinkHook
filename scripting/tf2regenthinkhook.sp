@@ -14,7 +14,7 @@
 #define TF_REGEN_HEALTH 3.0
 #define TF_REGEN_AMMO_INTERVAL 5.0
 
-#define PLUGIN_VERSION "22w44b"
+#define PLUGIN_VERSION "22w44c"
 
 public Plugin myinfo = {
 	name = "[TF2] Regen Think Hooks",
