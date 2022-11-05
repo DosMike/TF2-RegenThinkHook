@@ -2,7 +2,7 @@
 #include <sourcemod>
 #include <tf2>
 #include <tf2_stocks>
-#include "include/tf2rth.inc"
+#include <tf2regenthinkhook>
 
 #pragma newdecls required
 #pragma semicolon 1

@@ -42,6 +42,7 @@ GlobalForward fwd_RegenThinkPost;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
 	RegPluginLibrary("tf2regenthinkhook");
+	return APLRes_Success;
 }
 
 
