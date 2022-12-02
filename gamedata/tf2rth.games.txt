@@ -6,28 +6,28 @@
 		{
 			"CTFPlayer::m_flLastHealthRegenAt"
 			{
-				"linux" "8192"
-				"windows" "8188"
+				"linux" "8496"
+				"windows" "8492"
 			}
 			"CTFPlayer::m_flAccumulatedHealthRegen"
 			{
-				"linux" "8184"
-				"windows" "8180"
+				"linux" "8488"
+				"windows" "8484"
 			}
 			"CTFPlayer::TakeHealth()"
 			{
-				"linux" "65"
-				"windows" "64"
+				"linux" "67"
+				"windows" "66"
 			}
 			"CTFPlayer::m_flNextAmmoRegenAt"
 			{
-				"linux" "8188"
-				"windows" "8184"
+				"linux" "8492"
+				"windows" "8488"
 			}
 			"CTFPlayer::m_flLastDamageTime"
 			{
-				"linux" "8528"
-				"windows" "8524"
+				"linux" "8832"
+				"windows" "8828"
 			}
 		}
 		"Functions"
