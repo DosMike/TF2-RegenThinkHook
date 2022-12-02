@@ -14,7 +14,7 @@
 #define TF_REGEN_HEALTH 3.0
 #define TF_REGEN_AMMO_INTERVAL 5.0
 
-#define PLUGIN_VERSION "22w44c"
+#define PLUGIN_VERSION "22w48a"
 
 public Plugin myinfo = {
 	name = "[TF2] Regen Think Hooks",
@@ -175,6 +175,14 @@ stock void PlayerRegenAmmo(int client, int ammotype, float amount) {
 	SDKCall(sc_CTFPlayer_RegenAmmo, client, ammotype, amount);
 }
 
+stock bool GameModeUsesUpgrades() {
+	switch(GameRules_GetProp("m_nForceUpgrades")) {
+		case 1: return false;
+		case 2: return true;
+		default: return GameRules_GetProp("m_bPlayingMannVsMachine");
+	}
+}
+
 static float RemapRange(float value, float inMin, float inMax, float outMin, float outMax) {
 	//normalize
 	float normal = (value - inMin) / (inMax - inMin);
@@ -219,7 +227,7 @@ static void RegenThinkOverride(int client) {
 		healthClass *= RemapRange(timeSinceDmg, 5.0, 10.0, 1.0, 2.0);
 		
 		//healing_mastery attribute check
-		if (GameRules_GetProp("m_bPlayingMannVsMachine")) {
+		if (GameModeUsesUpgrades()) {
 			int healing_mastery = TF2Attrib_HookValueInt(0, "healing_mastery", client);
 			if (healing_mastery) healthClass *= RemapRange(float(healing_mastery), 1.0, 4.0, 1.25, 2.0);
 		}
@@ -231,8 +239,7 @@ static void RegenThinkOverride(int client) {
 	healthAttribs = TF2Attrib_HookValueFloat(0.0, "add_health_regen", client);
 	if (healthAttribs && !GameRules_GetProp("m_bPlayingMannVsMachine")) {
 		float timeSinceDmg = GetGameTime() - GetEntDataFloat(client, off_CTFPlayer_m_flLastDamageTime);
-		if (timeSinceDmg < 5.0) healthAttribs *= 0.5;
-		else if (timeSinceDmg < 10.0) healthAttribs *= (timeSinceDmg / 10.0);
+		healthAttribs *= RemapRange(timeSinceDmg, 5.0, 10.0, 0.5, 1.0);
 	}
 	
 	if (Call_RegenThinkHealth(client, healthClass, healthAttribs) >= Plugin_Handled) {
