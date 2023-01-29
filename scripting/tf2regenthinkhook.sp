@@ -14,7 +14,7 @@
 #define TF_REGEN_HEALTH 3.0
 #define TF_REGEN_AMMO_INTERVAL 5.0
 
-#define PLUGIN_VERSION "22w48a"
+#define PLUGIN_VERSION "23w04a"
 
 public Plugin myinfo = {
 	name = "[TF2] Regen Think Hooks",
@@ -26,7 +26,6 @@ public Plugin myinfo = {
 
 Handle sc_CTFPlayer_TakeHealth;
 Handle sc_CTFPlayer_RegenAmmo;
-Handle sc_CBaseEntity_ThinkSet;
 Address addr_CTFPlayer_RegenThink;
 DynamicDetour dt_CTFPlayer_RegenThink;
 
@@ -48,16 +47,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart() {
 	GameData data = new GameData("tf2rth.games");
-	
-	// allows us to use the engines scheduler to re-schedule the think function
-	StartPrepSDKCall(SDKCall_Entity);
-	PrepSDKCall_SetAddress(data.GetMemSig("CBaseEntity::ThinkSet()"));
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain); //function
-	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain); //next invocation
-	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Plain); //context name
-	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Pointer); //returns the function pointer for chain-calling i guess
-	if ((sc_CBaseEntity_ThinkSet = EndPrepSDKCall()) == INVALID_HANDLE)
-		SetFailState("Failed to prepare call to CBaseEntity::ThinkSet()");
 	
 	// at some point we need to apply the health
 	StartPrepSDKCall(SDKCall_Player);
@@ -112,6 +101,7 @@ public void OnVersionChanged(ConVar convar, const char[] oldValue, const char[] 
 public void OnMapStart() {
 	if (!dt_CTFPlayer_RegenThink.Enable(Hook_Pre, RegenThinkHook))
 		SetFailState("Could not hook CTFPlayer::RegenThink()");
+	CreateTimer(TF_REGEN_THINK_INTERVAL, RegenThinkInternal, .flags=TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public void OnMapEnd() {
@@ -161,13 +151,10 @@ static void Call_RegenThinkPost(int client, int regenHealthAmount, float regenAm
 }
 
 public MRESReturn RegenThinkHook(int pThis) {
-	RegenThinkOverride(pThis);
+	//block vanilla regen think completely
 	return MRES_Supercede;
 }
 
-stock void ThinkSet(int entity, Address func, float nextCall = 0.0, const char[] context = "") {
-	SDKCall(sc_CBaseEntity_ThinkSet, entity, func, nextCall, context);
-}
 stock int PlayerTakeHealth(int client, float health, int damage_flags) {
 	return SDKCall(sc_CTFPlayer_TakeHealth, client, health, damage_flags);
 }
@@ -179,7 +166,7 @@ stock bool GameModeUsesUpgrades() {
 	switch(GameRules_GetProp("m_nForceUpgrades")) {
 		case 1: return false;
 		case 2: return true;
-		default: return GameRules_GetProp("m_bPlayingMannVsMachine");
+		default: return GameRules_GetProp("m_bPlayingMannVsMachine")!=0;
 	}
 }
 
@@ -201,10 +188,17 @@ static int GetMedicPatient(int medic) {
 static int GetClientMaxHealth(int client) {
 	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }
+static Action RegenThinkInternal(Handle timer) {
+	for (int client=1; client<=MaxClients; client+=1) {
+		if (IsClientInGame(client))
+			RegenThinkOverride(client);
+	}
+	return Plugin_Continue;
+}
 static void RegenThinkOverride(int client) {
 	if (!IsPlayerAlive(client)) return;
-	ThinkSet(client, addr_CTFPlayer_RegenThink, GetGameTime()+TF_REGEN_THINK_INTERVAL, "RegenThink");
-	if (GetGameTime() < GetEntDataFloat(client, off_CTFPlayer_m_flLastHealthRegenAt)+TF_REGEN_THINK_INTERVAL) return;
+	// we're on a fixed timer now, this condition should always be false
+//	if (GetGameTime() < GetEntDataFloat(client, off_CTFPlayer_m_flLastHealthRegenAt)+TF_REGEN_THINK_INTERVAL) return;
 	
 	if (Call_RegenThinkPre(client)>=Plugin_Handled) return;
 	
@@ -242,6 +236,7 @@ static void RegenThinkOverride(int client) {
 		healthAttribs *= RemapRange(timeSinceDmg, 5.0, 10.0, 0.5, 1.0);
 	}
 	
+	//notify plugins
 	if (Call_RegenThinkHealth(client, healthClass, healthAttribs) >= Plugin_Handled) {
 		healthClass = healthAttribs = 0.0;
 	} else {
