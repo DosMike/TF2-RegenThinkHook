@@ -284,7 +284,7 @@ static void RegenThinkOverride(int client) {
 	// regenerate ammo and metal
 	float ammoAmount;
 	int metalAmount;
-	if (GetGameTime() > GetEntDataFloat(client, off_CTFPlayer_m_flNextAmmoRegenAt)) {
+	if (GetEntDataFloat(client, off_CTFPlayer_m_flNextAmmoRegenAt) - GetGameTime() < 0.1) {
 		SetEntDataFloat(client, off_CTFPlayer_m_flNextAmmoRegenAt, GetGameTime()+TF_REGEN_AMMO_INTERVAL);
 		
 		ammoAmount = TF2Attrib_HookValueFloat(0.0, "addperc_ammo_regen", client);

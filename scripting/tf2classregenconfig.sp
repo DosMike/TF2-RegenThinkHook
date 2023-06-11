@@ -120,7 +120,7 @@ public void LoadConfig(int replyTo) {
 			ClassOverrides[clz].neverHurt = regenConfig.GetNum("neverHurt",__defaultParams.neverHurt)>0;
 			if (regenConfig.JumpToKey("ammo")) {
 				ClassOverrides[clz].ammoScale = regenConfig.GetFloat("scaleAttributeValue",__defaultParams.ammoScale);
-				ClassOverrides[clz].ammoAdd = regenConfig.GetFloat("addRegenPrecent",__defaultParams.ammoAdd*100.0)/100.0;
+				ClassOverrides[clz].ammoAdd = regenConfig.GetFloat("addRegenPercent",__defaultParams.ammoAdd*100.0)/100.0;
 				regenConfig.GoBack();
 			} else {
 				ClassOverrides[clz].ammoScale = __defaultParams.ammoScale;
