@@ -6,7 +6,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "22w44c"
+#define PLUGIN_VERSION "23w23a"
 
 public Plugin myinfo = {
 	name = "[TF2] Class Regeneration Configuration",
@@ -44,6 +44,8 @@ int g_lastDamageOffset;
 
 GlobalForward fwd_ConfigReloaded;
 
+ConVar cvarConfigPath;
+
 public void OnPluginStart() {
 	GameData data = new GameData("tf2rth.games");
 	g_lastDamageOffset = data.GetOffset("CTFPlayer::m_flLastDamageTime");
@@ -54,6 +56,7 @@ public void OnPluginStart() {
 	
 	RegAdminCmd("sm_classregen_reloadconfig", ConCmd_ReloadConfig, ADMFLAG_CONFIG, "Reload the config from disk");
 	
+	cvarConfigPath = CreateConVar("sm_tf2classregenconfig", "cfg/sourcemod/classregenconfig.cfg", "Config Path");
 	ConVar version = CreateConVar("sm_tf2classregenconfig_version", PLUGIN_VERSION, "Version", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	version.SetString(PLUGIN_VERSION);
 	version.AddChangeHook(OnVersionChanged);
@@ -81,10 +84,12 @@ public void OnConfigsExecuted() {
 }
 
 public void LoadConfig(int replyTo) {
+	char path[PLATFORM_MAX_PATH];
+	cvarConfigPath.GetString(path, sizeof(path));
+	
 	KeyValues regenConfig = new KeyValues("ClassRegenConfig");
-	if (!regenConfig.ImportFromFile("cfg/sourcemod/classregenconfig.cfg")) {
-		if (replyTo) ReplyToCommand(replyTo, "[TF2 ClassRegenConfig] Failed to load config from cfg/sourcemod/classregenconfig.cfg");
-		else PrintToServer("[TF2 ClassRegenConfig] Failed to load config from cfg/sourcemod/classregen.cfg");
+	if (!regenConfig.ImportFromFile(path)) {
+		ReplyToCommand(replyTo, "[TF2 ClassRegenConfig] Failed to load config from %s", path);
 		delete regenConfig;
 		return;
 	}
@@ -97,8 +102,7 @@ public void LoadConfig(int replyTo) {
 			if (tmp[0]!=0) {
 				regenConfig.GoBack();
 				if (!regenConfig.JumpToKey(tmp)) {
-					if (replyTo) ReplyToCommand(replyTo, "[TF2 Class Regen] Failed to copy section \"%s\" into \"%s\", not found", tmp, tf2classnames[clz]);
-					else PrintToServer("[TF2 ClassRegenConfig] Failed to copy section \"%s\" into \"%s\", not found", tmp, tf2classnames[clz]);
+					ReplyToCommand(replyTo, "[TF2 Class Regen] Failed to copy section \"%s\" into \"%s\", not found", tmp, tf2classnames[clz]);
 					continue;
 				}
 			}
