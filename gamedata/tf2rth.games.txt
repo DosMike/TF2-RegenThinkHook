@@ -6,13 +6,13 @@
 		{
 			"CTFPlayer::m_flLastHealthRegenAt"
 			{
-				"linux" "8496"
-				"windows" "8492"
+				"linux" "8632"
+				"windows" "8628"
 			}
 			"CTFPlayer::m_flAccumulatedHealthRegen"
 			{
-				"linux" "8488"
-				"windows" "8484"
+				"linux" "8624"
+				"windows" "8620"
 			}
 			"CTFPlayer::TakeHealth()"
 			{
@@ -21,13 +21,13 @@
 			}
 			"CTFPlayer::m_flNextAmmoRegenAt"
 			{
-				"linux" "8492"
-				"windows" "8488"
+				"linux" "8628"
+				"windows" "8624"
 			}
 			"CTFPlayer::m_flLastDamageTime"
 			{
-				"linux" "8832"
-				"windows" "8828"
+				"linux" "8968"
+				"windows" "8964"
 			}
 		}
 		"Functions"
