@@ -47,7 +47,7 @@
 			{
 				"library" "server"
 				"linux" "@_ZN11CBaseEntity8ThinkSetEMS_FvvEfPKc"
-				"windows" "\x55\x8B\xEC\x83\xEC\x10\x56\x57\x8B\x7D\x10\x8B\xF1\x85\xFF"
+				"windows" "\x55\x8B\xEC\x56\x57\x8B\x7D\x10\x8B\xF1\x85\xFF"
 			}
 			
 			// Taken from TF2 Custom Attribute Starter Pack, Thank you nosoop
@@ -56,14 +56,14 @@
 				// contsins string "RegenThink" in block after first jump
 				"library"		"server"
 				"linux"			"@_ZN9CTFPlayer10RegenThinkEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x74\x57\x8B\xF9\x8B\x07"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x7C\x56\x8B\xF1"
 			}
 			
 			"CBaseEntity::RegenAmmoInternal()"
 			{
 				"library" "server"
 				"linux" "@_ZN9CTFPlayer17RegenAmmoInternalEif"
-				"windows" "\x55\x8B\xEC\x53\x8B\x5D\x08\x56\x57\x8B\xF9\x6A\xFF\x53"
+				"windows" "\x55\x8B\xEC\xF3\x0F\x10\x45\x0C\x53"
 			}
 		}
 	}
